@@ -1,11 +1,13 @@
-import { NextAuthOptions } from 'next-auth'
-import CredentialsProvider from 'next-auth/providers/credentials'
+import { PrismaAdapter } from '@auth/prisma-adapter'
 import { PrismaClient } from '@prisma/client'
+import { NextAuthOptions, User } from 'next-auth'
+import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
 export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -15,7 +17,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error('Credenciais inválidas')
+          throw new Error('Email e senha são obrigatórios')
         }
 
         const user = await prisma.user.findUnique({
@@ -28,7 +30,10 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Usuário não encontrado')
         }
 
-        const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
+        const isPasswordValid = await bcrypt.compare(
+          credentials.password,
+          user.password
+        )
 
         if (!isPasswordValid) {
           throw new Error('Senha incorreta')
@@ -37,27 +42,27 @@ export const authOptions: NextAuthOptions = {
         return {
           id: user.id,
           email: user.email,
-          name: user.name
-        }
+          name: user.name || undefined
+        } as User
       }
     })
   ],
-  pages: {
-    signIn: '/admin',
-  },
   session: {
-    strategy: 'jwt'
+    strategy: 'jwt' as const
+  },
+  pages: {
+    signIn: '/admin'
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: { token: any; user: User | null }) {
       if (user) {
         token.id = user.id
       }
       return token
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: any; token: any }) {
       if (session.user) {
-        session.user.id = token.id as string
+        session.user.id = token.id
       }
       return session
     }
