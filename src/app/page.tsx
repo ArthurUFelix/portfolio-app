@@ -1,24 +1,30 @@
 import Image from 'next/image'
-import { getExperiences } from '@/services/experienceService'
-import { getSkills } from '@/services/skillService'
-import { getAbout } from '@/services/aboutService'
 import { Experience } from '@/types/experience'
 import { Skill } from '@/services/skillService'
 import { About } from '@/services/aboutService'
+import { getExperiences } from '@/services/experienceService'
+import { getSkills } from '@/services/skillService'
+import { getAbout } from '@/services/aboutService'
+
+// Forçar atualização dinâmica e desabilitar cache
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export default async function Home() {
-  const experiences = await getExperiences()
-  const skills = await getSkills()
-  const about = await getAbout()
+  const [experiences, skills, about] = await Promise.all([
+    getExperiences(),
+    getSkills(),
+    getAbout()
+  ])
 
   // Agrupar habilidades por categoria
-  const skillsByCategory = skills.reduce((acc, skill) => {
+  const skillsByCategory = skills.reduce((acc: Record<string, Skill[]>, skill: Skill) => {
     if (!acc[skill.category]) {
       acc[skill.category] = []
     }
     acc[skill.category].push(skill)
     return acc
-  }, {} as Record<string, Skill[]>)
+  }, {})
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
