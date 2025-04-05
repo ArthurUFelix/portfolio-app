@@ -2,6 +2,12 @@
 
 Este é um projeto de portfólio profissional desenvolvido com Next.js, TypeScript e Tailwind CSS. O projeto inclui uma página inicial com informações do desenvolvedor e uma área administrativa para gerenciar as experiências profissionais.
 
+## Dashboard Admin
+
+- Rota de acesso: `/admin`
+- Email: `admin@portfolio.com`
+- Senha: `admin123`
+
 ## Tecnologias Utilizadas
 
 - Next.js 14
